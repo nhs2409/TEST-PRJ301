@@ -1,14 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller;
 
 import dal.BusDAO;
 import dal.ManagerDAO;
 import dal.SchoolDAO;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,41 +24,6 @@ import java.sql.Date;
  */
 public class TripInformationServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet TripInformationServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet TripInformationServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -85,6 +45,7 @@ public class TripInformationServlet extends HttpServlet {
         Map<Integer, String> busNames = new HashMap<>();
         Map<Integer, String> managerNames = new HashMap<>();
 
+        // LỖI 1: Truy vấn tên Manager không cần thiết trong vòng lặp
         for (Trip trip : l) {
             String driver = s.getDriverNameById(trip.getDid());
             driverNames.put(trip.getDid(), driver);
@@ -92,10 +53,9 @@ public class TripInformationServlet extends HttpServlet {
             String bus = b.getLicensePlateById(trip.getBusid());
             busNames.put(trip.getBusid(), bus);
 
-            String managerName = m.getManagerNameById(managerID);
+            String managerName = m.getManagerNameById(managerID); // Truy vấn này không cần lặp lại nhiều lần
             managerNames.put(trip.getMid(), managerName);
         }
-
 
         request.setAttribute("trips", l);
         request.setAttribute("driverNames", driverNames);
@@ -105,20 +65,10 @@ public class TripInformationServlet extends HttpServlet {
         request.setAttribute("drivers", drivers);
         request.setAttribute("buses", buses);
         request.setAttribute("managerId", managerID);
-//       
 
         request.getRequestDispatcher("tripList.jsp").forward(request, response);
-
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -131,7 +81,10 @@ public class TripInformationServlet extends HttpServlet {
         String managerID = request.getParameter("managerID");
         ManagerDAO m = new ManagerDAO();
 
-        List<Trip> l = m.searchTrips(Integer.valueOf(managerID), Integer.valueOf(busID), Integer.valueOf(driverId), Date.valueOf(tripDate));
+        // LỖI 2: Ép kiểu Integer.valueOf() mà không kiểm tra null hoặc chuỗi rỗng
+        int busIdInt = Integer.valueOf(busID);  // Nếu busID là "", null -> Lỗi NumberFormatException
+
+        List<Trip> l = m.searchTrips(Integer.valueOf(managerID), busIdInt, Integer.valueOf(driverId), Date.valueOf(tripDate));
 
         if (l.isEmpty()) {
             request.setAttribute("error", "NOT FOUNDED TRIP");
@@ -167,22 +120,5 @@ public class TripInformationServlet extends HttpServlet {
 
         }
         request.getRequestDispatcher("tripList.jsp").forward(request, response);
-
-//        PrintWriter out = response.getWriter();
-//        out.println(tripDate);
-//        out.println(driverId);
-//        out.println(busID);
-//        out.println(managerID);
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }
