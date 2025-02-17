@@ -18,10 +18,7 @@ import model.Drivers;
 import model.Trip;
 import java.sql.Date;
 
-/**
- *
- * @author sonNH
- */
+
 public class TripInformationServlet extends HttpServlet {
 
     @Override
